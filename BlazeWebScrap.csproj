@@ -75,6 +75,9 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ConsoleApp1.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="bcmail-jdk15-1.44, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Pdfbox.1.1.1\lib\bcmail-jdk15-1.44.dll</HintPath>
