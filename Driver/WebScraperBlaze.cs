@@ -65,7 +65,7 @@ namespace ConsoleApp1.Driver
 
                             try
                             {
-                                var fechaHistoricoCrash = Click(TypeElement.Xpath, "//*[@id=\"root\"]/main/div[3]/div/div[1]/i", 10);
+                                var fechaHistoricoCrash = Click(TypeElement.Xpath, "//*[@id=\"root\"]/main/div[3]/div/div[1]/i", 5);
                             }
                             catch (Exception)
                             {
