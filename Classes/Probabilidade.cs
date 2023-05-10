@@ -12,13 +12,15 @@ namespace ConsoleApp1.Classes
         public double ProbabilidadeAtual { get { return _probabilidade; } set { _probabilidade = _probabilidade / 100; } }
 
         int _porcentagem;
+        public int Porcentagem { get; set; }
         //public int Porcentagem { get { return _porcentagem; } set { value = Convert.ToInt32(ProbabilidadeAtual * 100); } }
 
         public Probabilidade() { }
         public Probabilidade(double probabilidade)
         {
             _probabilidade = probabilidade;
-            _porcentagem = Convert.ToInt32(ProbabilidadeAtual * 100);
+            Porcentagem = Convert.ToInt32(ProbabilidadeAtual * 100);
+            _porcentagem = Porcentagem;
         }
         public override string ToString()
         {

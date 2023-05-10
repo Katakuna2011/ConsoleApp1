@@ -23,6 +23,8 @@ namespace ConsoleApp1.Driver
 
             try
             {
+                Thread.Sleep(TimeSpan.FromSeconds(3));
+
                 var elementSearch = AssignValue(TypeElement.Xpath, "//*[@id=\"side\"]/div[1]/div/div/div[2]/div/div[1]", to, 5);
                 elementSearch.element.SendKeys(Keys.Enter);
 
@@ -35,7 +37,6 @@ namespace ConsoleApp1.Driver
             }
             finally
             {
-                Thread.Sleep(TimeSpan.FromSeconds(5));
                 CloseBrowser();
             }
         }

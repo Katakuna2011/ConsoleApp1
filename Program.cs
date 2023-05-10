@@ -14,7 +14,7 @@ namespace ConsoleApp1
             try
             {
                 Console.Write("Digite a porcentagem alvo: ");
-                int alvo = int.Parse(Console.ReadLine());
+                string alvo = Console.ReadLine();
 
                 Console.Write("Digite o destino da mensagem (conforme salvo no WhatsApp): ");
                 string destino = Console.ReadLine();
@@ -24,7 +24,7 @@ namespace ConsoleApp1
             catch (Exception e)
             {
                 Console.WriteLine("Houve um erro...");
-                Console.WriteLine(e.Message, e.InnerException);
+                Console.WriteLine($"{e.Message}\n, {e.InnerException}\n, {e.Source}\n");
                 throw new Exception(e.Message, e.InnerException);
             }
             finally

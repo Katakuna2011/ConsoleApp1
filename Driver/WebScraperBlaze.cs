@@ -9,87 +9,60 @@ using System.Threading;
 using System.Threading.Tasks;
 using ConsoleApp1.Classes;
 using ConsoleApp1.Driver;
+using javax.xml.stream.events;
+using java.awt;
 
 namespace ConsoleApp1.Driver
 {
     public class WebScraperBlaze : Web
     {
-        public DataTable GetData(string link, int porcentagemAlvo, string destinoMensagem)
+        bool staleElement = true;
+        List<Item> items = new List<Item>();
+        string probabilidade;
+        public DataTable GetData(string link, string porcentagemAlvo, string destinoMensagem)
         {
-            bool staleElement = true;
 
             if (driver == null)
                 StartBrowser();
 
-            List<Item> items = new List<Item>();
 
             Navigate(link);
 
             WaitForLoad();
 
-            Thread.Sleep(5000);
+            Thread.Sleep(2000);
 
             while (staleElement)
             {
                 try
                 {
-                    //var historicoCrash = Click(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[1]", 5);
-                    var historicoCrash = Navigate("https://blaze.com/pt/games/crash?modal=crash_history_index");
-
-                    var crashElements = GetValue(TypeElement.Xpath, "//*[@id=\"history\"]", 5)
-                        .element.FindElements(By.ClassName("bet"));
-
-
-                    foreach (var item in crashElements)
+                    Thread.Sleep(3000);
+                    if(items.Count <= 99)
                     {
-                        if (items.Count <= 99)
-                        {
-                            Item itemCrash = new Item();
+                        items = FindElements();
+                        Console.WriteLine($"\nCinco primeiros: {items[0].Multiplicador}, {items[1].Multiplicador}, {items[2].Multiplicador}, {items[3].Multiplicador}, {items[4].Multiplicador} \n");
+                        Console.WriteLine($"Cinco últimos: {items[95].Multiplicador}, {items[96].Multiplicador}, {items[97].Multiplicador}, {items[98].Multiplicador}, {items[99].Multiplicador} \n");
+                        Console.WriteLine($"Probabilidade atual: {UpdateProbability(items)}%");
+                    }                    
 
-                            string multiplicador = item.FindElement(By.ClassName("bet-amount")).Text;
+                    Thread.Sleep(3000);
 
-                            itemCrash.Multiplicador = decimal.Parse(RemoveChar(multiplicador));
+                    List<Item> listaverificacao = new List<Item> ();
+                    listaverificacao = HasTheListChanged(items);
 
+                    if (listaverificacao != items)
+                    {
+                        items = listaverificacao;   
 
-                            items.Add(itemCrash);
+                        Console.WriteLine($"\nCinco primeiros: {items[0].Multiplicador}, {items[1].Multiplicador}, {items[2].Multiplicador}, {items[3].Multiplicador}, {items[4].Multiplicador} \n");
+                        Console.WriteLine($"Cinco últimos: {items[95].Multiplicador}, {items[96].Multiplicador}, {items[97].Multiplicador}, {items[98].Multiplicador}, {items[99].Multiplicador} \n");
+                        probabilidade = UpdateProbability(items);
+                        Console.WriteLine($"Probabilidade atual: {probabilidade}%");
+                    }
 
-                            staleElement = true;
-                        }
-                        else
-                        {
-                            //Console.Clear();
-
-                            Console.WriteLine($"CRASH ATUAL: {items[0].Multiplicador}\n");
-
-                            Thread.Sleep(3000);
-
-                            try
-                            {
-                                var fechaHistoricoCrash = Click(TypeElement.Xpath, "//*[@id=\"root\"]/main/div[3]/div/div[1]/i", 5);
-                            }
-                            catch (Exception)
-                            {
-                                Console.WriteLine("Janela já fechada");
-                            }
-
-                            if (HasTheFirstFiveChanged())
-                            {
-                                var newCrashElement = GetValue(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[2]/span[1]").Value;
-                                Item newItemCrash = new Item(decimal.Parse(RemoveChar(newCrashElement)));
-                                items.RemoveAt(99);
-                                items.Insert(0, newItemCrash);
-
-                                var prob = new Probabilidade(GetProbability(items));
-                                Console.WriteLine(prob.ToString() + "\n");
-
-                                if (prob.ProbabilidadeAtual == porcentagemAlvo)
-                                {
-                                    new WhatsAppMessage().SendMessage(prob.ToString(), "Bruno");
-                                }
-                            }
-
-                            //Console.ReadKey();
-                        }
+                    if(probabilidade == porcentagemAlvo)
+                    {
+                        new WhatsAppMessage().SendMessage($"Probabilidade atual: {probabilidade}%", destinoMensagem);
                     }
                 }
                 catch (Exception)
@@ -100,75 +73,174 @@ namespace ConsoleApp1.Driver
                 }
             }
 
-
-            // double probabilidadeDeCrashAtual = GetProbability(items);
-
-            //var prob = new Probabilidade(GetProbability(items));
-
-            // Console.WriteLine(prob.ToString());
-
             Console.ReadKey();
 
             CloseBrowser();
 
             return Base.ConvertTo(items);
         }
+
+        public List<Item> FindElements()
+        {
+            List<Item> listaDeItems = new List<Item>();
+            var historicoCrash = Navigate("https://blaze.com/pt/games/crash?modal=crash_history_index");
+
+            WaitForLoad();
+
+            var crashElements = GetValue(TypeElement.Xpath, "//*[@id=\"history\"]", 5)
+                .element.FindElements(By.ClassName("bet"));
+            try
+            {
+                foreach (var item in crashElements)
+                {
+                    if (listaDeItems.Count <= 99)
+                    {
+                        Item itemCrash = new Item();
+
+                        string multiplicador = item.FindElement(By.ClassName("bet-amount")).Text;
+
+                        itemCrash.Multiplicador = decimal.Parse(RemoveChar(multiplicador));
+                        listaDeItems.Add(itemCrash);
+
+                        staleElement = true;
+                    }
+                }
+                closeStatistics();
+                return listaDeItems;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Source + "\n" + e.StackTrace);
+                throw;
+            }            
+        }
+
+        public void closeStatistics()
+        {
+            try
+            {
+                var fechaHistoricoCrash = Click(TypeElement.Xpath, "//*[@id=\"root\"]/main/div[3]/div/div[1]/i", 5);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Janela já fechada");
+            }
+        }
+
+        public string UpdateProbability(List<Item> lista)
+        {
+            try
+            {
+                var prob = new Probabilidade(GetProbability(items));                
+                return prob.Porcentagem.ToString();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Source + "\n" + e.StackTrace);
+                throw;
+            }
+
+            
+        }
+
         public string RemoveChar(string texto)
         {
-            var str = texto;
-            var charsToRemove = new string[] { " ", "x", "X" };
-            foreach (var @char in charsToRemove)
+            try
             {
-                str = str.Replace(@char, string.Empty);
+                var str = texto;
+                var charsToRemove = new string[] { " ", "x", "X" };
+                foreach (var @char in charsToRemove)
+                {
+                    str = str.Replace(@char, string.Empty);
+                }
+                return str;
             }
-            return str;
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Source + "\n" + e.StackTrace);
+                throw;
+            }
+
         }
 
         public double GetProbability(List<Item> lista)
         {
-            List<Item> listaDeItems = new List<Item>();
-
-            foreach (var item in lista)
+            try
             {
-                if (item.Multiplicador >= 2)
+                List<Item> listaDeItems = new List<Item>();
+
+                foreach (var item in lista)
                 {
-                    listaDeItems.Add(item);
-                }
-            }
-
-            double probabilidade = Convert.ToDouble(listaDeItems.Count) / Convert.ToDouble(lista.Count);
-
-            return probabilidade;
-        }
-
-        public bool HasTheFirstFiveChanged()
-        {
-            List<string> listaTeste = new List<string>();
-            bool noChanges = true;
-            while (noChanges)
-            {
-                List<string> fiveRecent = new List<string>() {
-                GetValue(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[2]/span[1]").Value,
-                GetValue(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[2]/span[2]").Value,
-                GetValue(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[2]/span[3]").Value,
-                GetValue(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[2]/span[4]").Value,
-                GetValue(TypeElement.Xpath, "//*[@id=\"crash-recent\"]/div[2]/div[2]/span[5]").Value
-                };
-
-                if (listaTeste.Count < 5)
-                {
-                    listaTeste = fiveRecent;
-                }
-
-                for (int i = 0; i < fiveRecent.Count; i++)
-                {
-                    if (fiveRecent[i] != listaTeste[i])
+                    if (item.Multiplicador >= 2)
                     {
-                        noChanges = false;
+                        listaDeItems.Add(item);
                     }
                 }
+
+                double probabilidade = Convert.ToDouble(listaDeItems.Count) / Convert.ToDouble(lista.Count);
+
+                return probabilidade;
             }
-            return true;
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Source + "\n" + e.StackTrace);
+                throw;
+            }
+            
+        }
+
+        public List<Item> HasTheListChanged(List<Item> lista)
+        {
+            try
+            {
+                List<Item> listaItem = new List<Item>();
+                listaItem = FindElements();
+
+                Thread.Sleep(3000);
+
+                var listaStringItems = new List<string>();
+                
+                var listaStringCompara = new List<string>();
+
+                foreach (var item in lista)
+                {
+                    if(lista.IndexOf(item) < 5)
+                    {
+                        listaStringItems.Add(item.Multiplicador.ToString());
+                    }
+                }
+
+                foreach (var item in listaItem)
+                {
+                    if(lista.IndexOf(item) < 5)
+                    {
+                        listaStringCompara.Add(item.Multiplicador.ToString());
+                    }
+                }
+
+                foreach (var item in listaStringItems)
+                {
+                    string itemLista = null;
+                    foreach (var item1 in listaStringCompara)
+                    {
+                        itemLista = item1;
+                    }
+
+                    if (item != itemLista)
+                    {
+                        Console.WriteLine("Houve Mudança...");
+                        return listaItem;
+                    }
+                    else
+                        break;
+                }
+                return lista;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Source + "\n" + e.StackTrace);
+                throw;
+            }           
         }
     }
 }
