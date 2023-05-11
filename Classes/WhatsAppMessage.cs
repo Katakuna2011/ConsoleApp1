@@ -19,11 +19,11 @@ namespace ConsoleApp1.Driver
 
             WaitForLoad();
 
-            Thread.Sleep(TimeSpan.FromSeconds(4));
+            Thread.Sleep(TimeSpan.FromSeconds(5));
 
             try
             {
-                Thread.Sleep(TimeSpan.FromSeconds(3));
+                Thread.Sleep(TimeSpan.FromSeconds(5));
 
                 var elementSearch = AssignValue(TypeElement.Xpath, "//*[@id=\"side\"]/div[1]/div/div/div[2]/div/div[1]", to, 5);
                 elementSearch.element.SendKeys(Keys.Enter);
