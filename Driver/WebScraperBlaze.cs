@@ -53,7 +53,7 @@ namespace ConsoleApp1.Driver
                     if (listaverificacao != items)
                     {
                         items = listaverificacao;   
-
+                        Console.Clear();
                         Console.WriteLine($"\nCinco primeiros: {items[0].Multiplicador}, {items[1].Multiplicador}, {items[2].Multiplicador}, {items[3].Multiplicador}, {items[4].Multiplicador} \n");
                         Console.WriteLine($"Cinco últimos: {items[95].Multiplicador}, {items[96].Multiplicador}, {items[97].Multiplicador}, {items[98].Multiplicador}, {items[99].Multiplicador} \n");
                         probabilidade = UpdateProbability(items);
@@ -178,7 +178,7 @@ namespace ConsoleApp1.Driver
                 }
 
                 double probabilidade = Convert.ToDouble(listaDeItems.Count) / Convert.ToDouble(lista.Count);
-
+                Console.WriteLine($"{listaDeItems.Count} / {lista.Count}");
                 return probabilidade;
             }
             catch (Exception e)
